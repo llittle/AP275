@@ -1,0 +1,68 @@
+&control
+	calculation = 'scf'
+	restart_mode = 'from_scratch'
+	prefix = 'YBCO_z_2_ecut80_vac10'
+	outdir = '/n/holyscratch01/hoffman_lab/ruizhe/outdir'
+	pseudo_dir = './pseudo'
+	nstep = 300
+	etot_conv_thr = 1.0d-5
+	forc_conv_thr = 1.0d-4
+/
+&system
+	ibrav = 0
+	nat=28, ntyp=4,
+	ecutwfc = 80.0
+	ecutrho = 960
+	occupations = 'smearing', smearing = 'gaussian', degauss = 0.01
+/
+&electrons
+	electron_maxstep = 120
+	mixing_beta = 0.5	
+	conv_thr = 1d-6
+/
+&ions
+    ion_dynamics="bfgs"
+/
+&cell
+    cell_dynamics="bfgs"
+/
+ATOMIC_SPECIES
+ Y   88.90585 Y.pz-spn-rrkjus_psl.1.0.0.UPF
+ Ba  137.3270 Ba.pz-spn-rrkjus_psl.1.0.0.UPF
+ O   15.99900 O.pz-rrkjus.UPF
+ Cu  63.55000 Cu.pz-d-rrkjus.UPF
+CELL_PARAMETERS {angstrom}
+   3.770249198   0.000000000   0.000000000
+   0.000000000   3.837200363   0.000000000
+   0.000000000   0.000000000   32.77261500
+ATOMIC_POSITIONS (angstrom)
+Ba    1.885124    1.918601    9.308213
+Ba    1.885124    1.918601   20.694521
+Ba    1.885124    1.918601    2.078104
+Ba    1.885124    1.918601   13.464412
+ Y    1.885124    1.918601    5.693159
+ Y    1.885124    1.918601   17.079466
+Cu    0.000000    0.000000    7.392136
+Cu    0.000000    0.000000   18.778442
+Cu    0.000000    0.000000    3.994181
+Cu    0.000000    0.000000   15.380489
+Cu    0.000000    0.000000    0.000000
+Cu    0.000000    0.000000   11.386308
+Cu    0.000000    0.000000   22.772615
+ O    0.000000    1.918601    0.000000
+ O    0.000000    1.918601   11.386308
+ O    0.000000    1.918601   22.772615
+ O    1.885124    0.000000    7.090976
+ O    1.885124    0.000000   18.477283
+ O    1.885124    0.000000    4.295340
+ O    1.885124    0.000000   15.681648
+ O    0.000000    1.918601    7.092435
+ O    0.000000    1.918601   18.478743
+ O    0.000000    1.918601    4.293882
+ O    0.000000    1.918601   15.680189
+ O    0.000000    0.000000    9.537972
+ O    0.000000    0.000000   20.924280
+ O    0.000000    0.000000    1.848345
+ O    0.000000    0.000000   13.234653
+K_POINTS (automatic)
+  8 8 1 0 0 0
