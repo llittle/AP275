@@ -117,7 +117,7 @@ def parse_qe_pwscf_output(outfile):
 METHODS ADDED 
 '''
 
-def make_struc(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave_plane='NO',
+def make_struc_rt2(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave_plane='NO',
                          separation=0):
     """
     Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
@@ -143,11 +143,52 @@ def make_struc(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave
     multiplier[2,2]=nz
     supercell = make_supercell(YBCO, multiplier)
     add_vacuum(supercell, vacuum)
-    name = f'YBCO_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
+    name = f'YBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
     write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     return [structure, name]
 
+'''
+Cannot get this to work well!!!
+
+def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave_plane='NO',
+                         separation=0):
+    """
+    Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
+    nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
+    alat, blat, clat: conventianal (NOT root2) lattice parameters
+    vacuum: vacuum spacing between slabs
+    cleave_plane: Not yet implemented
+    separation: not yet implemented
+    :return: structure object converted from ase
+    """
+    lattice = numpy.array([[alat,0,0],[0,blat,0],[0,0,clat]])
+    symbols = ['Ba','Ba','Y','Cu','Cu','Cu','O','O','O','O','O','O','O']
+    sc_pos = [[1.922334,1.963076,9.688204],
+              [1.922334,1.963076,2.135460],
+              [1.922334,1.963076,5.911832],
+              [0.000000,0.000000,7.646103],
+              [0.000000,0.000000,4.177560],
+              [0.000000,0.000000,0.000000],
+              [0.000000,1.963076,0.000000],
+              [1.922334,0.000000,7.338392],
+              [1.922334,0.000000,4.485271],
+              [0.000000,1.963076,7.350192],
+              [0.000000,1.963076,4.473472],
+              [0.000000,0.000000,9.941573],
+              [0.000000,0.000000,1.882091]]
+    YBCO = Atoms(symbols=symbols, scaled_positions=sc_pos, cell=lattice)
+    multiplier = numpy.identity(3)
+    multiplier[0,0]=nxy
+    multiplier[1,1]=nxy
+    multiplier[2,2]=nz
+    supercell = make_supercell(YBCO, multiplier)
+    add_vacuum(supercell, vacuum)
+    name = f'YBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
+    write(f'{name}.cif', supercell)
+    structure = Struc(ase2struc(supercell))
+    return [structure, name]
+'''
 def write_inputs(ecut = 80, nkxy = 8, nkz = 1, struc = None, dirname = 'Test', name = 'YBCO', calc = 'relax'):
     '''
     Generate input files based on an input structure
