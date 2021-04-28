@@ -248,10 +248,8 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
              ] 
     YBCO = Atoms(symbols=symbols, positions=sc_pos, cell=lattice)
     
-    #make a supercell
+    #make a supercell in the z direction
     multiplier = numpy.identity(3)
-    multiplier[0,0]=nxy
-    multiplier[1,1]=nxy
     multiplier[2,2]=nz
     supercell = make_supercell(YBCO, multiplier)
     
@@ -262,10 +260,6 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
                                       [0.000000,1.963076,0.000000]], 
                        cell = numpy.array([[alat,0,0],[0,blat,0],[0,0,2.135460]]))
         
-        #make a supercell of the capping layer
-        multiplier = numpy.identity(3)
-        multiplier[0,0]=nxy
-        multiplier[1,1]=nxy
         Cu_layer = make_supercell(Cu_layer, multiplier)
 
         #cap the unit cell
@@ -291,6 +285,12 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
         temp_cell = supercell.get_cell()
         temp_cell[2][2] += separation #add separation to cell height so vacuum is unchanged
         supercell.set_cell(temp_cell)
+        
+    #make supercell in x/y
+    multiplier = numpy.identity(3)
+    multiplier[1,1]=nxy
+    multiplier[0,0]=nxy
+    supercell = make_supercell(supercell, multiplier)
         
     #output ot a cif
     name = f'YBCO_conv_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
