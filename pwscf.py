@@ -122,7 +122,8 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
                          separation=0, slab = True):
     """
     Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
-    nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
+    with 1/8 Y --> Ca doping
+    nxy, nz: unit cell dimensions follow  nxy *2root 2, nxy* 2root 2, nz 
     alat, blat, clat: conventianal (NOT root2) lattice parameters
     vacuum: vacuum spacing between slabs
     cleave_plane: Not yet implemented
@@ -130,8 +131,8 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
     slab: if true add a CuO capping layer
     :return: structure object converted from ase
     
-    Slab will be 'capped' with a CuO layer (will not make sense in bulk)
-    """
+    Slab will be 'capped' with a CuO layer (will not make sense in bulk) """
+    
     a = numpy.sqrt(alat**2 + blat**2)
     lattice = numpy.array([[a,0,0],[0,a,0],[0,0,clat]])
     symbols = ['Cu', 'Cu', 'O', 'O',
@@ -139,8 +140,7 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
                'Cu', 'Cu', 'O', 'O', 'O', 'O',
                'Y', 'Y',
                'O', 'O', 'O', 'O' ,'Cu', 'Cu',
-               'Ba', 'Ba', 'O', 'O',
-               'O', 'O', 'Cu', 'Cu']
+               'Ba', 'Ba', 'O', 'O']
     sc_pos = [[0,0,0], #Cu
               [0.5,0.5,0], #Cu
               [0.25,0.25,0], #O
@@ -170,12 +170,22 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
              ]
     YBCO = Atoms(symbols=symbols, scaled_positions=sc_pos, cell=lattice)
     
-    #make the supercell
+    #make an x/y supercell of 2 and dope 1/8 Y --> Ca
+    multiplier = numpy.identity(3)
+    multiplier[0,0]=2
+    multiplier[1,1]=2
+    supercell = make_supercell(YBCO, multiplier)
+    
+    temp_sym = supercell.get_chemical_symbols()
+    temp_sym[15] = 'Ca'
+    supercell.set_chemical_symbols(temp_sym)
+    
+    #make the supercell of the 2rt(2) doped supercell
     multiplier = numpy.identity(3)
     multiplier[0,0]=nxy
     multiplier[1,1]=nxy
     multiplier[2,2]=nz
-    supercell = make_supercell(YBCO, multiplier)
+    supercell = make_supercell(supercell, multiplier)
     
     
     if slab:
@@ -186,6 +196,11 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
                                       [0.25,0.25,0], 
                                       [0.75,0.75,0]],
                        cell = numpy.array([[a,0,0],[0,a,0],[0,0,clat]]))
+        #make a supercell of the capping layer
+        multiplier = numpy.identity(3)
+        multiplier[0,0]=nxy*2
+        multiplier[1,1]=nxy*2
+        Cu_layer = make_supercell(Cu_layer, multiplier)
 
         #cap the unit cell
         supercell = stack(supercell, Cu_layer)
@@ -195,7 +210,7 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
     
     #output to cif
     name = f'YBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
-    #write(f'{name}.cif', supercell)
+    write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     
     return [structure, name]
