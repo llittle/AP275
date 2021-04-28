@@ -3,7 +3,7 @@ from labutil.objects import TextFile, ExternalCode, File, Param, Struc, ase2stru
 from labutil.util import prepare_dir, run_command
 from ase.spacegroup import crystal
 from ase.io import write
-from ase.build import bulk, make_supercell, add_vacuum
+from ase.build import bulk, make_supercell, add_vacuum, stack
 from ase import Atoms
 
 class PWscf_inparam(Param):
@@ -79,10 +79,11 @@ def write_pwscf_input(runpath, params, struc, kpoints, pseudopots, name = 'pwscf
             inptxt += ' {} {} {} \n'.format(*constraint.content['atoms'][str(index)])
         else:
             inptxt += '\n'
-
-    infile = TextFile(path=os.path.join(runpath.path, name+'.in'), text=inptxt)
+    
+    out_path = os.path.join(runpath, name+'.in')
+    infile = TextFile(path=out_path, text=inptxt)
     infile.write()
-    print(f"Writing {os.path.join(runpath.path,name)}")
+    print(f"Writing {out_path}")
     return infile
 
 
@@ -118,7 +119,7 @@ METHODS ADDED
 '''
 
 def make_struc_rt2(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave_plane='NO',
-                         separation=0):
+                         separation=0, slab = True):
     """
     Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
     nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
@@ -126,33 +127,78 @@ def make_struc_rt2(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cl
     vacuum: vacuum spacing between slabs
     cleave_plane: Not yet implemented
     separation: not yet implemented
+    slab: if true add a CuO capping layer
     :return: structure object converted from ase
+    
+    Slab will be 'capped' with a CuO layer (will not make sense in bulk)
     """
     a = numpy.sqrt(alat**2 + blat**2)
     lattice = numpy.array([[a,0,0],[0,a,0],[0,0,clat]])
-    symbols = ['Y', 'Y', 'Ba', 'Ba', 'Ba', 'Ba', 'Cu', 'Cu', 'Cu', 'Cu', 'Cu', 'Cu','O', 'O', 'O','O','O','O','O','O','O','O','O','O','O','O',]
-    sc_pos = [[0.5,0,0.5], [0,0.5,0.5], 
-              [0.5, 0, 0.81939], [0, 0.5, 0.81939], [0.5, 0, 0.18061], [0, 0.5, 0.18061],
-              [0,0,0], [0.5,0.5,0], [0,0,0.64668], [0.5,0.5,0.64668], [0,0,0.35332], [0.5,0.5,0.35332],
-              [0.25,0.25,0], [0.75,0.75,0], [0,0,0.15918], [0.5,0.5,0.15918], [0.25,0.25,0.37835], [0.75,0.75,0.37835],[0.25,0.75,0.37935], [0.75,0.25,0.37935], [0.25,0.25,0.62065], [0.75,0.75,0.62065],[0.25,0.75,0.62165], [0.75,0.25,0.62165], [0,0,0.84082], [0.5,0.5,0.84082]
+    symbols = ['Y', 'Y', 
+               'Ba', 'Ba', 'Ba', 'Ba', 
+               'Cu', 'Cu', 'Cu', 'Cu', 'Cu', 'Cu',
+               'O', 'O', 'O','O','O','O','O','O','O','O','O','O','O','O',]
+    sc_pos = [[0.5,0,0.5], 
+              [0,0.5,0.5], 
+              [0.5, 0, 0.81939], 
+              [0, 0.5, 0.81939], 
+              [0.5, 0, 0.18061], 
+              [0, 0.5, 0.18061],
+              [0,0,0], 
+              [0.5,0.5,0], 
+              [0,0,0.64668], 
+              [0.5,0.5,0.64668], 
+              [0,0,0.35332], 
+              [0.5,0.5,0.35332],
+              [0.25,0.25,0], 
+              [0.75,0.75,0], 
+              [0,0,0.15918], 
+              [0.5,0.5,0.15918], 
+              [0.25,0.25,0.37835], 
+              [0.75,0.75,0.37835],
+              [0.25,0.75,0.37935], 
+              [0.75,0.25,0.37935], 
+              [0.25,0.25,0.62065], 
+              [0.75,0.75,0.62065],
+              [0.25,0.75,0.62165], 
+              [0.75,0.25,0.62165], 
+              [0,0,0.84082], 
+              [0.5,0.5,0.84082]
              ]
     YBCO = Atoms(symbols=symbols, scaled_positions=sc_pos, cell=lattice)
+    
+    #make the supercell
     multiplier = numpy.identity(3)
     multiplier[0,0]=nxy
     multiplier[1,1]=nxy
     multiplier[2,2]=nz
     supercell = make_supercell(YBCO, multiplier)
-    add_vacuum(supercell, vacuum)
+    
+    if slab:
+        #make the position of the 'capping' layer
+        Cu_layer = Atoms(symbols = ['Cu', 'Cu', 'O', 'O'], 
+                         scaled_positions = [[0.0,0.0, 0.0],
+                                      [0.5,0.5,0],
+                                      [0.25,0.25,0], 
+                                      [0.75,0.75,0]],
+                       cell = numpy.array([[a,0,0],[0,a,0],[0,0,clat]]))
+
+        #cap the unit cell
+        supercell = stack(supercell, Cu_layer)
+
+        #add vacuum
+        add_vacuum(supercell, vacuum)
+    
+    #output to cif
     name = f'YBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
     write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
+    
     return [structure, name]
 
-'''
-Cannot get this to work well!!!
 
 def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave_plane='NO',
-                         separation=0):
+                         separation=0, slab = True):
     """
     Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
     nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
@@ -161,15 +207,18 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
     cleave_plane: Not yet implemented
     separation: not yet implemented
     :return: structure object converted from ase
+    
+    Structure will have CuO chains on the top and the bottom of the unit cell
     """
     lattice = numpy.array([[alat,0,0],[0,blat,0],[0,0,clat]])
+    
     symbols = ['Ba','Ba','Y','Cu','Cu','Cu','O','O','O','O','O','O','O']
     sc_pos = [[1.922334,1.963076,9.688204],
               [1.922334,1.963076,2.135460],
               [1.922334,1.963076,5.911832],
               [0.000000,0.000000,7.646103],
               [0.000000,0.000000,4.177560],
-              [0.000000,0.000000,0.000000],
+              [0.0000000000,0.0000000000, 0],
               [0.000000,1.963076,0.000000],
               [1.922334,0.000000,7.338392],
               [1.922334,0.000000,4.485271],
@@ -177,18 +226,34 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
               [0.000000,1.963076,4.473472],
               [0.000000,0.000000,9.941573],
               [0.000000,0.000000,1.882091]]
-    YBCO = Atoms(symbols=symbols, scaled_positions=sc_pos, cell=lattice)
+    YBCO = Atoms(symbols=symbols, positions=sc_pos, cell=lattice)
+    
+    #make a supercell
     multiplier = numpy.identity(3)
     multiplier[0,0]=nxy
     multiplier[1,1]=nxy
     multiplier[2,2]=nz
     supercell = make_supercell(YBCO, multiplier)
-    add_vacuum(supercell, vacuum)
-    name = f'YBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
+    
+    if slab:
+        #make the position of the 'capping' layer
+        Cu_layer = Atoms(symbols = ['Cu', 'O'], 
+                         positions = [[0.0000000000,0.0000000000, 0],
+                                      [0.000000,1.963076,0.000000]], 
+                       cell = numpy.array([[alat,0,0],[0,blat,0],[0,0,2.135460]]))
+
+        #cap the unit cell
+        supercell = stack(supercell, Cu_layer)
+    
+        #add vacuum
+        add_vacuum(supercell, vacuum)
+    
+    #output ot a cif
+    name = f'YBCO_conv_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
     write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     return [structure, name]
-'''
+
 def write_inputs(ecut = 80, nkxy = 8, nkz = 1, struc = None, dirname = 'Test', name = 'YBCO', calc = 'relax'):
     '''
     Generate input files based on an input structure
@@ -198,27 +263,32 @@ def write_inputs(ecut = 80, nkxy = 8, nkz = 1, struc = None, dirname = 'Test', n
                   'Cu': PseudoPotential(ptype='uspp', element='Cu', functional='LDA', name='Cu.pz-d-rrkjus.UPF'),
                   'O': PseudoPotential(ptype='uspp', element='O', functional='LDA', name='O.pz-rrkjus.UPF')}
     kpts = Kpoints(gridsize=[nkxy, nkxy, nkz], option='automatic', offset=True)
-    runpath = Dir(path=os.path.join(os.environ['WORKDIR'], 'AP275', dirname))
+    runpath = Dir(path=os.path.join('n/$SCRATCH/hoffman_lab/2021_AP275', 
+                                    dirname))
     input_params = PWscf_inparam({
         'CONTROL': {
             'calculation': calc,
-            'pseudo_dir': os.environ['QE_POTENTIALS'],
+            'pseudo_dir': '/n/$SCRATCH/hoffman_lab/2021_AP275/pseudo',
             'outdir': runpath.path,
             'tstress': True,
             'tprnfor': True,
-            'disk_io': 'none'
+            'disk_io': 'none',
+            'nstep' : 300,
+            'etot_conv_thr' : 1.0e-5,
+            'forc_conv_thr' : 1.0e-4
         },
         'SYSTEM': {
             'ecutwfc': ecut,
             'ecutrho': ecut * 12,
             'occupations': 'smearing',
-            'smearing': 'mp',
-            'degauss': 0.02
+            'smearing': 'gaussian',
+            'degauss': 0.01
              },
         'ELECTRONS': {
             'diagonalization': 'david',
-            'mixing_beta': 0.7,
-            'conv_thr': 1e-7,
+            'electron_maxstep': 120,
+            'mixing_beta': 0.5,
+            'conv_thr': 1e-6
         },
         'IONS': {
             'ion_dynamics': 'bfgs'
@@ -228,6 +298,6 @@ def write_inputs(ecut = 80, nkxy = 8, nkz = 1, struc = None, dirname = 'Test', n
         
     pwscf_code = ExternalCode({'path': os.environ['QE_PW_COMMAND']})
     prepare_dir(runpath.path)
-    infile = write_pwscf_input(params=input_params, struc=struc, kpoints=kpts, runpath=runpath,
+    infile = write_pwscf_input(params=input_params, struc=struc, kpoints=kpts, runpath=dirname,
                                pseudopots=pseudopots, name = name+'_'+calc, constraint=None)
     return infile
