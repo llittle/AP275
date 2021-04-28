@@ -135,7 +135,7 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
     a = numpy.sqrt(alat**2 + blat**2)
     lattice = numpy.array([[a,0,0],[0,a,0],[0,0,clat]])
     symbols = ['Cu', 'Cu', 'O', 'O',
-               'O','O','Ba', 'Ba'
+               'O','O','Ba', 'Ba',
                'Cu', 'Cu', 'O', 'O', 'O', 'O',
                'Y', 'Y',
                'O', 'O', 'O', 'O' ,'Cu', 'Cu',
@@ -176,6 +176,7 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
     multiplier[1,1]=nxy
     multiplier[2,2]=nz
     supercell = make_supercell(YBCO, multiplier)
+    
     
     if slab:
         #make the position of the 'capping' layer
