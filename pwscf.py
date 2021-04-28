@@ -191,7 +191,7 @@ def make_struc_rt2(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cl
     
     #output to cif
     name = f'YBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
-    write(f'{name}.cif', supercell)
+    #write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     
     return [structure, name]
@@ -250,7 +250,7 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
     
     #output ot a cif
     name = f'YBCO_conv_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
-    write(f'{name}.cif', supercell)
+    #write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     return [structure, name]
 
