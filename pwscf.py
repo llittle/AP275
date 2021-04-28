@@ -207,8 +207,8 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
     nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
     alat, blat, clat: conventianal (NOT root2) lattice parameters
     vacuum: vacuum spacing between slabs
-    cleave_plane: Not yet implemented
-    separation: not yet implemented
+    cleave_plane: "BaO", 'CuO', "Y", or 'NO' for no cleave plane
+    separation: separation of the cleave
     :return: structure object converted from ase
     
     Structure will have CuO chains on the top and the bottom of the unit cell
@@ -262,12 +262,14 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
     elif cleave_plane == "Y":
         split = int(nz/2)*13 + 8
     
-    temp_pos = supercell.get_positions()
-    temp_pos[split:,2] += separation #add separation in z to all atoms after cleave plane
-    supercell.set_positions(temp_pos)
-    temp_cell = supercell.get_cell()
-    temp_cell[2][2] += separation #add separation to cell height so vacuum is unchanged
-    supercell.set_cell(temp_cell)
+    if cleave_plane != "NO":
+        temp_pos = supercell.get_positions()
+        temp_pos[split:,2] += separation #add separation in z to all atoms after cleave plane
+        supercell.set_positions(temp_pos)
+        temp_cell = supercell.get_cell()
+        temp_cell[2][2] += separation #add separation to cell height so vacuum is unchanged
+        supercell.set_cell(temp_cell)
+        
     #output ot a cif
     name = f'YBCO_conv_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
     write(f'{name}.cif', supercell)
