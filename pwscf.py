@@ -118,7 +118,7 @@ def parse_qe_pwscf_output(outfile):
 METHODS ADDED 
 '''
 
-def make_struc_rt2(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave_plane='NO',
+def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave_plane='NO',
                          separation=0, slab = True):
     """
     Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
@@ -134,36 +134,39 @@ def make_struc_rt2(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cl
     """
     a = numpy.sqrt(alat**2 + blat**2)
     lattice = numpy.array([[a,0,0],[0,a,0],[0,0,clat]])
-    symbols = ['Y', 'Y', 
-               'Ba', 'Ba', 'Ba', 'Ba', 
-               'Cu', 'Cu', 'Cu', 'Cu', 'Cu', 'Cu',
-               'O', 'O', 'O','O','O','O','O','O','O','O','O','O','O','O',]
-    sc_pos = [[0.5,0,0.5], 
-              [0,0.5,0.5], 
-              [0.5, 0, 0.81939], 
-              [0, 0.5, 0.81939], 
-              [0.5, 0, 0.18061], 
-              [0, 0.5, 0.18061],
-              [0,0,0], 
-              [0.5,0.5,0], 
-              [0,0,0.64668], 
-              [0.5,0.5,0.64668], 
-              [0,0,0.35332], 
-              [0.5,0.5,0.35332],
-              [0.25,0.25,0], 
-              [0.75,0.75,0], 
-              [0,0,0.15918], 
-              [0.5,0.5,0.15918], 
-              [0.25,0.25,0.37835], 
-              [0.75,0.75,0.37835],
-              [0.25,0.75,0.37935], 
-              [0.75,0.25,0.37935], 
-              [0.25,0.25,0.62065], 
-              [0.75,0.75,0.62065],
-              [0.25,0.75,0.62165], 
-              [0.75,0.25,0.62165], 
-              [0,0,0.84082], 
-              [0.5,0.5,0.84082]
+    symbols = ['Cu', 'Cu', 'O', 'O',
+               'O','O','Ba', 'Ba'
+               'Cu', 'Cu', 'O', 'O', 'O', 'O',
+               'Y', 'Y',
+               'O', 'O', 'O', 'O' ,'Cu', 'Cu',
+               'Ba', 'Ba', 'O', 'O',
+               'O', 'O', 'Cu', 'Cu']
+    sc_pos = [[0,0,0], #Cu
+              [0.5,0.5,0], #Cu
+              [0.25,0.25,0], #O
+              [0.75,0.75,0], #O
+              [0,0,0.15918], #O
+              [0.5,0.5,0.15918], #O
+              [0.5, 0, 0.18061], #Ba
+              [0, 0.5, 0.18061], #Ba
+              [0,0,0.35332], #Cu
+              [0.5,0.5,0.35332], #Cu
+              [0.25,0.25,0.37835], #O
+              [0.75,0.75,0.37835], #O
+              [0.25,0.75,0.37935], #O
+              [0.75,0.25,0.37935], #O
+              [0.5,0,0.5], #Y
+              [0,0.5,0.5], #Y
+              [0.25,0.25,0.62065], #O
+              [0.75,0.75,0.62065], #O
+              [0.25,0.75,0.62165], #O
+              [0.75,0.25,0.62165], #O
+              [0,0,0.64668], #Cu
+              [0.5,0.5,0.64668], #Cu
+              [0.5, 0, 0.81939], #Ba
+              [0, 0.5, 0.81939], #Ba
+              [0,0,0.84082], #O
+              [0.5,0.5,0.84082] #O
              ]
     YBCO = Atoms(symbols=symbols, scaled_positions=sc_pos, cell=lattice)
     
@@ -212,20 +215,21 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
     """
     lattice = numpy.array([[alat,0,0],[0,blat,0],[0,0,clat]])
     
-    symbols = ['Ba','Ba','Y','Cu','Cu','Cu','O','O','O','O','O','O','O']
-    sc_pos = [[1.922334,1.963076,9.688204],
-              [1.922334,1.963076,2.135460],
-              [1.922334,1.963076,5.911832],
-              [0.000000,0.000000,7.646103],
-              [0.000000,0.000000,4.177560],
-              [0.0000000000,0.0000000000, 0],
-              [0.000000,1.963076,0.000000],
-              [1.922334,0.000000,7.338392],
-              [1.922334,0.000000,4.485271],
-              [0.000000,1.963076,7.350192],
-              [0.000000,1.963076,4.473472],
-              [0.000000,0.000000,9.941573],
-              [0.000000,0.000000,1.882091]]
+    symbols = ['Cu','O','O','Ba','Cu','O','O','Y','O','O','Cu','Ba','O']
+    sc_pos = [[0.0000000000,0.0000000000, 0], #Cu
+              [0.000000,1.963076,0.000000], #O
+              [0.000000,0.000000,1.882091], #O
+              [1.922334,1.963076,2.135460], #Ba
+              [0.000000,0.000000,4.177560], #Cu
+              [0.000000,1.963076,4.473472], #O
+              [1.922334,0.000000,4.485271], #O
+              [1.922334,1.963076,5.911832], #Y
+              [1.922334,0.000000,7.338392], #O
+              [0.000000,1.963076,7.350192], #O
+              [0.000000,0.000000,7.646103], #Cu
+              [1.922334,1.963076,9.688204], #Ba
+              [0.000000,0.000000,9.941573], #O
+             ] 
     YBCO = Atoms(symbols=symbols, positions=sc_pos, cell=lattice)
     
     #make a supercell
@@ -248,10 +252,27 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
         #add vacuum
         add_vacuum(supercell, vacuum)
     
+    #find the plane to cleave on (closest to the middle)
+    if cleave_plane == 'CuO':
+        split = int(nz/2)*13 + 2
+        
+    elif cleave_plane == "BaO":
+        split = int(nz/2)*13 + 4
+        
+    elif cleave_plane == "Y":
+        split = int(nz/2)*13 + 8
+    
+    temp_pos = supercell.get_positions()
+    temp_pos[split:,2] += separation #add separation in z to all atoms after cleave plane
+    supercell.set_positions(temp_pos)
+    temp_cell = supercell.get_cell()
+    temp_cell[2][2] += separation #add separation to cell height so vacuum is unchanged
+    supercell.set_cell(temp_cell)
     #output ot a cif
     name = f'YBCO_conv_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
-    #write(f'{name}.cif', supercell)
+    write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
+    
     return [structure, name]
 
 def write_inputs(ecut = 80, nkxy = 8, nkz = 1, struc = None, dirname = 'Test', name = 'YBCO', calc = 'relax'):
