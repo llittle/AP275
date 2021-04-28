@@ -246,6 +246,12 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
                          positions = [[0.0000000000,0.0000000000, 0],
                                       [0.000000,1.963076,0.000000]], 
                        cell = numpy.array([[alat,0,0],[0,blat,0],[0,0,2.135460]]))
+        
+        #make a supercell of the capping layer
+        multiplier = numpy.identity(3)
+        multiplier[0,0]=nxy
+        multiplier[1,1]=nxy
+        Cu_layer = make_supercell(Cu_layer, multiplier)
 
         #cap the unit cell
         supercell = stack(supercell, Cu_layer)
