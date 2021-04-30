@@ -244,7 +244,7 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
               [0.000000,1.963076,7.350192], #O
               [0.000000,0.000000,7.646103], #Cu
               [1.922334,1.963076,9.688204], #Ba
-              [0.000000,0.000000,9.941573], #O
+              [0.000000,0.000000,9.941573] #O
              ] 
     YBCO = Atoms(symbols=symbols, positions=sc_pos, cell=lattice)
     
@@ -291,6 +291,55 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
     multiplier[1,1]=nxy
     multiplier[0,0]=nxy
     supercell = make_supercell(supercell, multiplier)
+        
+    #output ot a cif
+    name = f'YBCO_conv_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
+    write(f'{name}.cif', supercell)
+    structure = Struc(ase2struc(supercell))
+    
+    return [structure, name]
+
+def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
+                         separation=0, slab = True):
+    """
+    Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
+    nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
+    alat, blat, clat: conventianal (NOT root2) lattice parameters
+    vacuum: vacuum spacing between slabs
+    cleave_plane: "BaO", 'CuO', "Y", or 'NO' for no cleave plane
+    separation: separation of the cleave
+    :return: structure object converted from ase
+    
+    Structure will have CuO chains on the top and the bottom of the unit cell
+    """
+    
+    YBCO = Atoms(symbols=symbols, positions=sc_pos, cell=lattice)
+    
+    #make a supercell in the z direction
+    multiplier = numpy.identity(3)
+    multiplier[2,2]=nz
+    supercell = make_supercell(YBCO, multiplier)
+    
+    #add vacuum
+    add_vacuum(supercell, 20)
+    
+    #find the plane to cleave on (closest to the middle)
+    if cleave_plane == 'CuO':
+        split = int(nz/2)*13 + 2
+        
+    elif cleave_plane == "BaO":
+        split = int(nz/2)*13 + 4
+        
+    elif cleave_plane == "Y":
+        split = int(nz/2)*13 + 8
+    
+    if cleave_plane != "NO":
+        temp_pos = supercell.get_positions()
+        temp_pos[split:,2] += separation #add separation in z to all atoms after cleave plane
+        supercell.set_positions(temp_pos)
+        temp_cell = supercell.get_cell()
+        temp_cell[2][2] += separation #add separation to cell height so vacuum is unchanged
+        supercell.set_cell(temp_cell)
         
     #output ot a cif
     name = f'YBCO_conv_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
