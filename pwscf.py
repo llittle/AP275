@@ -300,7 +300,7 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
     return [structure, name]
 
 def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
-                         separation=0, slab = True):
+                         separation=0):
     """
     Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
     nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
@@ -313,15 +313,8 @@ def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
     Structure will have CuO chains on the top and the bottom of the unit cell
     """
     
-    YBCO = Atoms(symbols=symbols, positions=sc_pos, cell=lattice)
-    
-    #make a supercell in the z direction
-    multiplier = numpy.identity(3)
-    multiplier[2,2]=nz
-    supercell = make_supercell(YBCO, multiplier)
-    
-    #add vacuum
-    add_vacuum(supercell, 20)
+    supercell = Atoms(symbols=symbols, positions=sc_pos, cell=lattice)
+  
     
     #find the plane to cleave on (closest to the middle)
     if cleave_plane == 'CuO':
@@ -342,8 +335,8 @@ def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
         supercell.set_cell(temp_cell)
         
     #output ot a cif
-    name = f'YBCO_conv_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
-    write(f'{name}.cif', supercell)
+    name = f'YBCO_conv_{nz}_{cleave_plane}cleave_{separation}sep'
+    #write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     
     return [structure, name]
