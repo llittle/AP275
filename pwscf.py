@@ -335,28 +335,29 @@ def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
         supercell.set_cell(temp_cell)
         
     #output ot a cif
-    name = f'YBCO_conv_{nz}_{cleave_plane}cleave_{separation}sep'
+    name = f'YBCO_{cleave_plane}_cleave_{separation}_sep'
     #write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     
     return [structure, name]
 
-def write_inputs(ecut = 80, nkxy = 8, nkz = 1, struc = None, dirname = 'Test', name = 'YBCO', calc = 'relax'):
+def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, calc = 'vc-relax'):
     '''
     Generate input files based on an input structure
     '''
-    pseudopots = {'Y': PseudoPotential(ptype='uspp', element='Y', functional='LDA', name='Y.pz-spn-rrkjus_psl.1.0.0.UPF'),
-                  'Ba': PseudoPotential(ptype='uspp', element='Ba', functional='LDA', name='Ba.pz-spn-rrkjus_psl.1.0.0.UPF'),
-                  'Cu': PseudoPotential(ptype='uspp', element='Cu', functional='LDA', name='Cu.pz-d-rrkjus.UPF'),
-                  'O': PseudoPotential(ptype='uspp', element='O', functional='LDA', name='O.pz-rrkjus.UPF')}
-    kpts = Kpoints(gridsize=[nkxy, nkxy, nkz], option='automatic', offset=True)
-    runpath = Dir(path=os.path.join('n/$SCRATCH/hoffman_lab/2021_AP275', 
-                                    dirname))
+    pseudopots = {'Y': PseudoPotential(ptype='uspp', element='Y', functional='PBE', name='Y.pbe-nsp-van.UPF'),
+                  'Ba': PseudoPotential(ptype='uspp', element='Ba', functional='PBE', name='Ba.pbe-nsp-van.UPF'),
+                  'Cu': PseudoPotential(ptype='uspp', element='Cu', functional='PBE', name='Cu.pbe-n-van_ak.UPF'),
+                  'O': PseudoPotential(ptype='uspp', element='O', functional='PBE', name='O.pbe-van_ak.UPF')}
+    kpts = Kpoints(gridsize=[nkxy, nkxy, nkz], option='automatic', offset=False)
+    #runpath = Dir(path=os.path.join('n/$SCRATCH/hoffman_lab/2021_AP275', 
+    #                                dirname))
+    runpath = Dir(path=os.path.join(os.environ['WORKDIR'], "Input_files"))
     input_params = PWscf_inparam({
         'CONTROL': {
             'calculation': calc,
-            'pseudo_dir': '/n/$SCRATCH/hoffman_lab/2021_AP275/pseudo',
-            'outdir': runpath.path,
+            'pseudo_dir': '/n/holyscratch01/hoffman_lab/ruizhe/YBCO_Project/pseudo',
+            'outdir': 'n/holyscratch01/hoffman_lab/ruizhe/outdir',
             'tstress': True,
             'tprnfor': True,
             'disk_io': 'none',
@@ -374,17 +375,21 @@ def write_inputs(ecut = 80, nkxy = 8, nkz = 1, struc = None, dirname = 'Test', n
         'ELECTRONS': {
             'diagonalization': 'david',
             'electron_maxstep': 120,
-            'mixing_beta': 0.5,
+            'mixing_mode': 'local-TF',
+            'mixing_beta': 0.2,
+            'mixing_ndim': 10,
             'conv_thr': 1e-6
         },
         'IONS': {
             'ion_dynamics': 'bfgs'
         },
-        'CELL': {},
+        'CELL': {
+            'cell_dynamics': 'bfgs'
+        },
         })
         
     pwscf_code = ExternalCode({'path': os.environ['QE_PW_COMMAND']})
     prepare_dir(runpath.path)
-    infile = write_pwscf_input(params=input_params, struc=struc, kpoints=kpts, runpath=dirname,
-                               pseudopots=pseudopots, name = name+'_'+calc, constraint=None)
+    infile = write_pwscf_input(params=input_params, struc=struc, kpoints=kpts, runpath=runpath.path,
+                               pseudopots=pseudopots, name = dirname, constraint=None)
     return infile
