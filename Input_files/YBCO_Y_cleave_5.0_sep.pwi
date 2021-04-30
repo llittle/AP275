@@ -1,7 +1,7 @@
 &CONTROL
     calculation = 'vc-relax'
     pseudo_dir = '/n/holyscratch01/hoffman_lab/ruizhe/YBCO_Project/pseudo'
-    outdir = 'n/holyscratch01/hoffman_lab/ruizhe/outdir'
+    outdir = '/n/holyscratch01/hoffman_lab/ruizhe/outdir'
     tstress = .true.
     tprnfor = .true.
     disk_io = 'none'
@@ -43,7 +43,7 @@ ATOMIC_SPECIES
 CELL_PARAMETERS {angstrom}
  3.888243331 0.0 0.0
  0.0 3.793282068 0.0
- 0.0 0.0 51.772261683
+ 0.0 0.0 48.772261683
 ATOMIC_POSITIONS {angstrom}
   O 0.00000 1.89664 -0.10031
   Cu 0.00000 0.00000 0.08390
@@ -66,10 +66,10 @@ ATOMIC_POSITIONS {angstrom}
   O 1.94412 0.00000 16.03670
   O 0.00000 1.89664 16.11257
   Y 1.94412 1.89664 17.49626
-  O 0.00000 1.89664 26.92155
-  O 1.94412 0.00000 26.95720
-  Cu 0.00000 0.00000 27.22385
-  Ba 1.94412 1.89664 29.23641
-  O 0.00000 0.00000 29.33228
-  Cu 0.00000 0.00000 31.22082
-  O 0.00000 1.89664 31.40505
+  O 0.00000 1.89664 23.92155
+  O 1.94412 0.00000 23.95720
+  Cu 0.00000 0.00000 24.22385
+  Ba 1.94412 1.89664 26.23641
+  O 0.00000 0.00000 26.33228
+  Cu 0.00000 0.00000 28.22082
+  O 0.00000 1.89664 28.40505
