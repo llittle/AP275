@@ -349,7 +349,7 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
                   'Ba': PseudoPotential(ptype='uspp', element='Ba', functional='PBE', name='Ba.pbe-nsp-van.UPF'),
                   'Cu': PseudoPotential(ptype='uspp', element='Cu', functional='PBE', name='Cu.pbe-n-van_ak.UPF'),
                   'O': PseudoPotential(ptype='uspp', element='O', functional='PBE', name='O.pbe-van_ak.UPF'),
-                 'Ca': PseudoPotential(ptype='uspp', element='Ca', functional='PBE', name='Ca.pbe-van.UPF')}
+                 'Ca': PseudoPotential(ptype='uspp', element='Ca', functional='PBE', name='Ca.pbe-nsp-van.UPF')}
     kpts = Kpoints(gridsize=[nkxy, nkxy, nkz], option='automatic', offset=False)
     #runpath = Dir(path=os.path.join('n/$SCRATCH/hoffman_lab/2021_AP275', 
     #                                dirname))
