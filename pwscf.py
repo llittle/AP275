@@ -209,7 +209,7 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
         add_vacuum(supercell, vacuum)
     
     #output to cif
-    name = f'YBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
+    name = f'dYBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
     write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     
@@ -348,7 +348,8 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
     pseudopots = {'Y': PseudoPotential(ptype='uspp', element='Y', functional='PBE', name='Y.pbe-nsp-van.UPF'),
                   'Ba': PseudoPotential(ptype='uspp', element='Ba', functional='PBE', name='Ba.pbe-nsp-van.UPF'),
                   'Cu': PseudoPotential(ptype='uspp', element='Cu', functional='PBE', name='Cu.pbe-n-van_ak.UPF'),
-                  'O': PseudoPotential(ptype='uspp', element='O', functional='PBE', name='O.pbe-van_ak.UPF')}
+                  'O': PseudoPotential(ptype='uspp', element='O', functional='PBE', name='O.pbe-van_ak.UPF'),
+                 'Ca': PseudoPotential(ptype='uspp', element='Ca', functional='PBE', name='Ca.pbe-van.UPF')}
     kpts = Kpoints(gridsize=[nkxy, nkxy, nkz], option='automatic', offset=False)
     #runpath = Dir(path=os.path.join('n/$SCRATCH/hoffman_lab/2021_AP275', 
     #                                dirname))
