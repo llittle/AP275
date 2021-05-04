@@ -118,7 +118,7 @@ def parse_qe_pwscf_output(outfile):
 METHODS ADDED 
 '''
 
-def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave_plane='NO',
+def make_struc_doped(nxy=1, nz = 2, alat=3.78, blat=3.88, clat=11.68, vacuum=0, cleave_plane='NO',
                          separation=0, slab = True):
     """
     Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
@@ -134,7 +134,7 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
     Slab will be 'capped' with a CuO layer (will not make sense in bulk) """
     
     a = numpy.sqrt(alat**2 + blat**2)
-    lattice = numpy.array([[a,0,0],[0,a,0],[0,0,clat]])
+    lattice = numpy.array([[2*alat,blat,0],[alat,blat,0],[0,0,clat]])
     symbols = ['Cu', 'Cu', 'O', 'O',
                'O','O','Ba', 'Ba',
                'Cu', 'Cu', 'O', 'O', 'O', 'O',
