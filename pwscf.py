@@ -80,7 +80,7 @@ def write_pwscf_input(runpath, params, struc, kpoints, pseudopots, name = 'pwscf
         else:
             inptxt += '\n'
     
-    out_path = os.path.join(runpath, name+'.in')
+    out_path = os.path.join(runpath, name+'.pwi')
     infile = TextFile(path=out_path, text=inptxt)
     infile.write()
     print(f"Writing {out_path}")
@@ -357,7 +357,7 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
         'CONTROL': {
             'calculation': calc,
             'pseudo_dir': '/n/holyscratch01/hoffman_lab/ruizhe/YBCO_Project/pseudo',
-            'outdir': 'n/holyscratch01/hoffman_lab/ruizhe/outdir',
+            'outdir': '/n/holyscratch01/hoffman_lab/ruizhe/outdir',
             'tstress': True,
             'tprnfor': True,
             'disk_io': 'none',
