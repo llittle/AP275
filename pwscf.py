@@ -118,6 +118,37 @@ def parse_qe_pwscf_output(outfile):
 METHODS ADDED 
 '''
 
+def parse_qe_pwrelax_output(outfile):
+    with open(outfile, 'r') as outf:
+        save = 0
+        for line in outf:
+            if line.lower().startswith('!    total energy'):
+                total_energy = float(line.split()[-2]) * 13.605698066
+            if line.lower().startswith('end final coordinates'):
+                save = 0
+            if line.lower().startswith('     new unit-cell volume ='):
+                volume = line.split()[4]
+            if line.lower().startswith('     density = '):
+                density = line.split()[2]
+            if save == 'cell':
+                cell.append(line.split())
+            if save == 'atoms':
+                if len(line.split())>1:
+                    sym.append(line.split()[0])
+                    pos.append(line.split()[1:])
+            if line.lower().startswith('cell_parameters'):
+                save = 'cell'
+                cell = []
+            if line.lower().startswith('atomic_positions'):
+                save = 'atoms'
+                pos = []
+                sym = []
+                cell = cell[:-2]
+                
+    result = {'energy': total_energy, 'volume':volume, 'density':density, 'cell': numpy.asarray(cell), 'positions':numpy.asarray(pos), 
+             'symbols':sym}
+    return result
+
 def make_struc_doped(nxy=1, nz = 2, alat=3.78, blat=3.88, clat=11.68, vacuum=0, cleave_plane='NO',
                          separation=0, slab = True):
     """
