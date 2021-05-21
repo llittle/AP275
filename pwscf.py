@@ -5,6 +5,7 @@ from ase.spacegroup import crystal
 from ase.io import write
 from ase.build import bulk, make_supercell, add_vacuum, stack
 from ase import Atoms
+import re
 
 class PWscf_inparam(Param):
     """
@@ -119,6 +120,22 @@ METHODS ADDED
 '''
 
 import numpy 
+def parse_qe_pwscf_output_mod(outfile):
+    with open(outfile, 'r') as outf:
+        for line in outf:
+            if line.lower().startswith('     pwscf'):
+                walltime = line.split()[-3] + line.split()[-2]
+            if line.lower().startswith('     total force'):
+                total_force = float(line.split()[3]) * (13.605698066 / 0.529177249)
+            if line.lower().startswith('!    total energy'):
+                total_energy = float(line.split()[-2]) * 13.605698066
+            if line.lower().startswith('          total   stress'):
+                pressure = float(line.split()[-1])
+            if 'number of k points' in line.lower():
+                unique_k =line.split()[4]
+    result = {'energy': total_energy, 'force': total_force, 'pressure': pressure, 'unique ks':unique_k}
+    return result
+
 def parse_qe_pwrelax_output(outfile):
     with open(outfile, 'r') as outf:
         save = 0
@@ -702,3 +719,55 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
     infile = write_pwscf_input(params=input_params, struc=struc, kpoints=kpts, runpath=runpath.path,
                                pseudopots=pseudopots, name = dirname, constraint=None)
     return infile
+
+
+def parse_set(path, slab_eng):
+    
+    def sort_set(sep, eng):
+        idx=numpy.argsort(sep)
+        return [sep[idx], eng[idx]]
+    
+    files = os.listdir(path)
+    Y = []
+    CuO = []
+    BaO = []
+    sep_Y = []
+    sep_CuO = []
+    sep_BaO = []
+    for f in files:
+        x = re.split("_", f)
+        if 'pwo' in f:
+            cleave = x[1]
+            res = parse_qe_pwscf_output_mod(path+f)
+            if cleave == 'Y':
+                s = float(x[3])
+                sep_Y.append(s)
+                Y.append(res['energy'])
+            elif cleave == 'BaO':
+                s = float(x[3])
+                sep_BaO.append(s)
+                BaO.append(res['energy'])
+            elif cleave == 'CuO':
+                s = float(x[3])
+                sep_CuO.append(s)
+                CuO.append(res['energy'])
+    for lst in [sep_Y, sep_CuO, sep_BaO]:
+        lst.append(0.0)
+    for lst in [Y, CuO, BaO]:
+        lst.append(slab_eng)
+    Y = numpy.array(Y)
+    BaO = numpy.array(BaO)
+    CuO = numpy.array(CuO)
+    Y,BaO,CuO = (numpy.array(x)-slab_eng for x in (Y, BaO, CuO))
+    sep_Y, sep_BaO, sep_CuO = (numpy.array(x) for x in (sep_Y, sep_BaO, sep_CuO))
+    [sep_Y, Y] = sort_set(sep_Y, Y)
+    [sep_BaO, BaO] = sort_set(sep_BaO, BaO)
+    [sep_CuO, CuO] = sort_set(sep_CuO, CuO)
+
+
+    return [Y, 
+            CuO, 
+            BaO, 
+            sep_Y, 
+            sep_CuO, 
+            sep_BaO]
