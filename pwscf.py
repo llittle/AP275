@@ -118,6 +118,7 @@ def parse_qe_pwscf_output(outfile):
 METHODS ADDED 
 '''
 
+import numpy 
 def parse_qe_pwrelax_output(outfile):
     with open(outfile, 'r') as outf:
         save = 0
@@ -145,7 +146,7 @@ def parse_qe_pwrelax_output(outfile):
                 sym = []
                 cell = cell[:-2]
                 
-    result = {'energy': total_energy, 'volume':volume, 'density':density, 'cell': numpy.asarray(cell), 'positions':numpy.asarray(pos), 
+    result = {'energy': total_energy, 'volume':volume, 'density':density, 'cell': numpy.asarray(cell).astype(float), 'positions':numpy.asarray(pos).astype(float), 
              'symbols':sym}
     return result
 
