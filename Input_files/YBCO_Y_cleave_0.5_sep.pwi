@@ -1,0 +1,75 @@
+&CONTROL
+    calculation = 'scf'
+    pseudo_dir = '/n/holyscratch01/hoffman_lab/ruizhe/YBCO_Project/pseudo'
+    outdir = '/n/holyscratch01/hoffman_lab/ruizhe/outdir'
+    tstress = .true.
+    tprnfor = .true.
+    disk_io = 'none'
+    nstep = 300
+    etot_conv_thr = 1e-05
+    forc_conv_thr = 0.0001
+/ 
+&SYSTEM
+    ecutwfc = 60
+    ecutrho = 720
+    occupations = 'smearing'
+    smearing = 'gaussian'
+    degauss = 0.01
+    ntyp = 4
+    nat = 28
+    ibrav = 0
+/ 
+&ELECTRONS
+    diagonalization = 'david'
+    electron_maxstep = 120
+    mixing_mode = 'local-TF'
+    mixing_beta = 0.2
+    mixing_ndim = 10
+    conv_thr = 1e-06
+/ 
+&IONS
+    ion_dynamics = 'bfgs'
+/ 
+&CELL
+    cell_dynamics = 'bfgs'
+/ 
+K_POINTS {automatic}
+ 8 8 1  0 0 0
+ATOMIC_SPECIES
+  Ba 137.327 Ba.pbe-nsp-van.UPF
+  Cu 63.546 Cu.pbe-n-van_ak.UPF
+  O 15.999 O.pbe-van_ak.UPF
+  Y 88.90584 Y.pbe-nsp-van.UPF
+CELL_PARAMETERS {angstrom}
+ 3.888243331 0.0 0.0
+ 0.0 3.793282068 0.0
+ 0.0 0.0 44.272261683
+ATOMIC_POSITIONS {angstrom}
+  O 0.00000 1.89664 -0.10031
+  Cu 0.00000 0.00000 0.08390
+  O 0.00000 0.00000 1.97255
+  Ba 1.94412 1.89664 2.06842
+  Cu 0.00000 0.00000 4.08104
+  O 1.94412 0.00000 4.34767
+  O 0.00000 1.89664 4.38327
+  Y 1.94412 1.89664 5.80856
+  O 0.00000 1.89664 7.19224
+  O 1.94412 0.00000 7.26818
+  Cu 0.00000 0.00000 7.55002
+  Ba 1.94412 1.89664 9.53633
+  O 0.00000 0.00000 9.76084
+  O 0.00000 1.89664 11.65247
+  Cu 0.00000 0.00000 11.65249
+  O 0.00000 0.00000 13.54403
+  Ba 1.94412 1.89664 13.76851
+  Cu 0.00000 0.00000 15.75491
+  O 1.94412 0.00000 16.03670
+  O 0.00000 1.89664 16.11257
+  Y 1.94412 1.89664 17.49626
+  O 0.00000 1.89664 19.42155
+  O 1.94412 0.00000 19.45720
+  Cu 0.00000 0.00000 19.72385
+  Ba 1.94412 1.89664 21.73641
+  O 0.00000 0.00000 21.83228
+  Cu 0.00000 0.00000 23.72082
+  O 0.00000 1.89664 23.90505

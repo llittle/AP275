@@ -118,7 +118,7 @@ def parse_qe_pwscf_output(outfile):
 METHODS ADDED 
 '''
 
-def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, cleave_plane='NO',
+def make_struc_doped(nxy=1, nz = 2, alat=3.78, blat=3.88, clat=11.68, vacuum=0, cleave_plane='NO',
                          separation=0, slab = True):
     """
     Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
@@ -132,84 +132,317 @@ def make_struc_doped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0, 
     :return: structure object converted from ase
     
     Slab will be 'capped' with a CuO layer (will not make sense in bulk) """
-    
-    a = numpy.sqrt(alat**2 + blat**2)
-    lattice = numpy.array([[a,0,0],[0,a,0],[0,0,clat]])
-    symbols = ['Cu', 'Cu', 'O', 'O',
-               'O','O','Ba', 'Ba',
-               'Cu', 'Cu', 'O', 'O', 'O', 'O',
-               'Y', 'Y',
-               'O', 'O', 'O', 'O' ,'Cu', 'Cu',
-               'Ba', 'Ba', 'O', 'O']
-    sc_pos = [[0,0,0], #Cu
-              [0.5,0.5,0], #Cu
-              [0.25,0.25,0], #O
-              [0.75,0.75,0], #O
-              [0,0,0.15918], #O
-              [0.5,0.5,0.15918], #O
-              [0.5, 0, 0.18061], #Ba
-              [0, 0.5, 0.18061], #Ba
-              [0,0,0.35332], #Cu
-              [0.5,0.5,0.35332], #Cu
-              [0.25,0.25,0.37835], #O
-              [0.75,0.75,0.37835], #O
-              [0.25,0.75,0.37935], #O
-              [0.75,0.25,0.37935], #O
-              [0.5,0,0.5], #Y
-              [0,0.5,0.5], #Y
-              [0.25,0.25,0.62065], #O
-              [0.75,0.75,0.62065], #O
-              [0.25,0.75,0.62165], #O
-              [0.75,0.25,0.62165], #O
-              [0,0,0.64668], #Cu
-              [0.5,0.5,0.64668], #Cu
-              [0.5, 0, 0.81939], #Ba
-              [0, 0.5, 0.81939], #Ba
-              [0,0,0.84082], #O
-              [0.5,0.5,0.84082] #O
-             ]
-    YBCO = Atoms(symbols=symbols, scaled_positions=sc_pos, cell=lattice)
-    
-    #make an x/y supercell of 2 and dope 1/8 Y --> Ca
-    multiplier = numpy.identity(3)
-    multiplier[0,0]=2
-    multiplier[1,1]=2
-    supercell = make_supercell(YBCO, multiplier)
-    
-    temp_sym = supercell.get_chemical_symbols()
-    temp_sym[15] = 'Ca'
-    supercell.set_chemical_symbols(temp_sym)
+        
+    if slab == False: #start with bulk contsants
+        lattice = numpy.array([[-alat,blat,0],[alat,blat,0],[0,0,clat]])
+
+        symbols = ['Cu', 'Cu', 'O', 'O',
+                   'O','O','Ba', 'Ba',
+                   'Cu', 'Cu', 'O', 'O', 'O', 'O',
+                   'Y', 'Y',
+                   'O', 'O', 'O', 'O' ,'Cu', 'Cu',
+                   'Ba', 'Ba', 'O', 'O']
+        sc_pos = [[0,0,0], #Cu
+                  [0.5,0.5,0], #Cu
+                  [0.25,0.25,0], #O
+                  [0.75,0.75,0], #O
+                  [0,0,0.15918], #O
+                  [0.5,0.5,0.15918], #O
+                  [0.5, 0, 0.18061], #Ba
+                  [0, 0.5, 0.18061], #Ba
+                  [0,0,0.35332], #Cu
+                  [0.5,0.5,0.35332], #Cu
+                  [0.25,0.25,0.37835], #O
+                  [0.75,0.75,0.37835], #O
+                  [0.25,0.75,0.37935], #O
+                  [0.75,0.25,0.37935], #O
+                  [0.5,0,0.5], #Y
+                  [0,0.5,0.5], #Y
+                  [0.25,0.25,0.62065], #O
+                  [0.75,0.75,0.62065], #O
+                  [0.25,0.75,0.62165], #O
+                  [0.75,0.25,0.62165], #O
+                  [0,0,0.64668], #Cu
+                  [0.5,0.5,0.64668], #Cu
+                  [0.5, 0, 0.81939], #Ba
+                  [0, 0.5, 0.81939], #Ba
+                  [0,0,0.84082], #O
+                  [0.5,0.5,0.84082] #O
+                 ]
+        YBCO = Atoms(symbols=symbols, scaled_positions=sc_pos, cell=lattice)
+        
+        #make an x/y supercell of 2 and dope 1/8 Y --> Ca
+        multiplier = numpy.identity(3)
+        multiplier[0,0]=2
+        multiplier[1,1]=2
+        supercell = make_supercell(YBCO, multiplier)
+
+        temp_sym = supercell.get_chemical_symbols()
+        temp_sym[15] = 'Ca'
+        supercell.set_chemical_symbols(temp_sym)
+        
+    else: #use relax bulk results
+        lattice = numpy.array([[-7.587021933,7.807135371,0],[7.587021933,7.807135371,0],[0,0,11.698429422]])
+        alat = -7.587021933
+        blat = 7.807135371
+        clat = 11.698429422
+
+        pos = [
+            [ 3.78343845e+00,  9.75891921e+00, -1.67587300e-04],
+            [ 1.00725138e-02,  9.75891921e+00, -1.67587300e-04],
+            [ 4.23017900e-04,  1.30382920e-03, -1.64595500e-04],
+            [ 4.23017900e-04,  3.90226386e+00, -1.64595500e-04],
+            [ 3.79308795e+00,  3.90226386e+00, -1.64595500e-04],
+            [-3.79393398e+00,  7.80843920e+00, -1.64595500e-04],
+            [ 3.79327612e+00,  7.80723808e+00, -1.57934000e-04],
+            [ 2.34848800e-04,  1.17106004e+01, -1.57934000e-04],
+            [-3.79374581e+00,  3.90346498e+00, -1.57934000e-04],
+            [ 2.34848800e-04,  7.80723808e+00, -1.57934000e-04],
+            [-3.76572710e-03,  5.85492076e+00, -1.49792700e-04],
+            [ 3.79727669e+00,  5.85492076e+00, -1.49792700e-04],
+            [-3.76572710e-03,  1.36629177e+01, -1.49792700e-04],
+            [-3.78974524e+00,  5.85578229e+00, -1.49792700e-04],
+            [-3.78837203e+00,  9.75891921e+00, -1.13868000e-04],
+            [-5.13893340e-03,  1.95178384e+00, -1.13868000e-04],
+            [ 3.79681994e+00,  3.90599078e+00,  1.87712964e+00],
+            [-3.30897490e-03,  3.90599078e+00,  1.87712964e+00],
+            [-3.30897490e-03, -2.42309020e-03,  1.87712964e+00],
+            [-3.79020199e+00,  7.80471228e+00,  1.87712964e+00],
+            [ 3.79367597e+00,  7.80631532e+00,  1.88198895e+00],
+            [-3.79334596e+00,  3.90438774e+00,  1.88198895e+00],
+            [-1.65001400e-04,  7.80631532e+00,  1.88198895e+00],
+            [-1.65001400e-04,  1.17115231e+01,  1.88198895e+00],
+            [ 1.89675548e+00,  9.75891921e+00,  2.09648480e+00],
+            [ 5.69026645e+00,  5.85535153e+00,  2.10018595e+00],
+            [-1.89675548e+00,  5.85535153e+00,  2.10018595e+00],
+            [-1.90582564e+00,  9.75891921e+00,  2.10377245e+00],
+            [-1.88768533e+00,  1.95178384e+00,  2.10377245e+00],
+            [ 1.89675548e+00,  5.84739926e+00,  2.10670874e+00],
+            [-5.69026645e+00,  5.86330380e+00,  2.10670874e+00],
+            [ 1.89675548e+00,  1.95178384e+00,  2.13600676e+00],
+            [-3.79277906e+00,  3.90345510e+00,  4.09769996e+00],
+            [ 3.79424287e+00,  7.80724796e+00,  4.09769996e+00],
+            [-7.31908500e-04,  7.80724796e+00,  4.09769996e+00],
+            [-7.31908500e-04,  1.17105905e+01,  4.09769996e+00],
+            [-3.79691828e+00,  7.81270396e+00,  4.10085907e+00],
+            [ 3.79010366e+00,  3.89799910e+00,  4.10085907e+00],
+            [ 3.40730960e-03,  5.56858670e-03,  4.10085907e+00],
+            [ 3.40730960e-03,  3.89799910e+00,  4.10085907e+00],
+            [-5.48362496e-02,  1.95178384e+00,  4.34900178e+00],
+            [-3.73867472e+00,  9.75891921e+00,  4.34900178e+00],
+            [-5.69026645e+00,  7.74921333e+00,  4.38013791e+00],
+            [ 1.89675548e+00,  3.96148973e+00,  4.38013791e+00],
+            [ 3.79329307e+00,  9.75891921e+00,  4.40433153e+00],
+            [ 2.17894200e-04,  9.75891921e+00,  4.40433153e+00],
+            [-8.00205360e-03,  5.85523771e+00,  4.40490696e+00],
+            [ 3.80151302e+00,  5.85523771e+00,  4.40490696e+00],
+            [-3.78550891e+00,  5.85546534e+00,  4.40490696e+00],
+            [-8.00205360e-03,  1.36626007e+01,  4.40490696e+00],
+            [ 1.89675548e+00,  1.17107839e+01,  4.43561367e+00],
+            [ 1.89675548e+00,  7.80705449e+00,  4.43561367e+00],
+            [-1.89773859e+00,  7.80037845e+00,  4.43774161e+00],
+            [-1.89577238e+00,  3.91032461e+00,  4.43774161e+00],
+            [-1.89773859e+00,  1.17174600e+01,  4.43774161e+00],
+            [ 5.69124955e+00,  7.80037845e+00,  4.43774161e+00],
+            [ 1.89675548e+00,  1.95178384e+00,  5.84911393e+00],
+            [-1.91567103e+00,  9.75891921e+00,  5.84914643e+00],
+            [-1.87783993e+00,  1.95178384e+00,  5.84914643e+00],
+            [ 1.89675548e+00,  9.75891921e+00,  5.84921696e+00],
+            [ 5.69026645e+00,  5.85535153e+00,  5.84922278e+00],
+            [-1.89675548e+00,  5.85535153e+00,  5.84922278e+00],
+            [ 1.89675548e+00,  5.83603639e+00,  5.84929230e+00],
+            [-5.69026645e+00,  5.87466667e+00,  5.84929230e+00],
+            [-1.89578402e+00,  3.91046728e+00,  7.26463087e+00],
+            [ 5.69123791e+00,  7.80023577e+00,  7.26463087e+00],
+            [-1.89772695e+00,  1.17176027e+01,  7.26463087e+00],
+            [-1.89772695e+00,  7.80023577e+00,  7.26463087e+00],
+            [ 1.89675548e+00,  7.80726351e+00,  7.26709917e+00],
+            [ 1.89675548e+00,  1.17105749e+01,  7.26709917e+00],
+            [-7.89885530e-03,  1.36626216e+01,  7.29027403e+00],
+            [-7.89885530e-03,  5.85521679e+00,  7.29027403e+00],
+            [ 3.80140982e+00,  5.85521679e+00,  7.29027403e+00],
+            [-3.78561211e+00,  5.85548626e+00,  7.29027403e+00],
+            [ 3.79348859e+00,  9.75891921e+00,  7.29058728e+00],
+            [ 2.23762000e-05,  9.75891921e+00,  7.29058728e+00],
+            [ 1.89675548e+00,  3.96227918e+00,  7.32234835e+00],
+            [-5.69026645e+00,  7.74842388e+00,  7.32234835e+00],
+            [-5.41733603e-02,  1.95178384e+00,  7.34616111e+00],
+            [-3.73933761e+00,  9.75891921e+00,  7.34616111e+00],
+            [-3.79693495e+00,  7.81272687e+00,  7.59786957e+00],
+            [ 3.79008699e+00,  3.89797618e+00,  7.59786957e+00],
+            [ 3.42397940e-03,  5.59150060e-03,  7.59786957e+00],
+            [ 3.42397940e-03,  3.89797618e+00,  7.59786957e+00],
+            [-7.41994100e-04,  1.17105987e+01,  7.60094916e+00],
+            [-3.79276897e+00,  3.90346331e+00,  7.60094916e+00],
+            [ 3.79425296e+00,  7.80723975e+00,  7.60094916e+00],
+            [-7.41994100e-04,  7.80723975e+00,  7.60094916e+00],
+            [ 1.89675548e+00,  1.95178384e+00,  9.56201848e+00],
+            [-5.69026645e+00,  5.86325706e+00,  9.59137593e+00],
+            [ 1.89675548e+00,  5.84744600e+00,  9.59137593e+00],
+            [-1.88769978e+00,  1.95178384e+00,  9.59410138e+00],
+            [-1.90581118e+00,  9.75891921e+00,  9.59410138e+00],
+            [-1.89675548e+00,  5.85535153e+00,  9.59777641e+00],
+            [ 5.69026645e+00,  5.85535153e+00,  9.59777641e+00],
+            [ 1.89675548e+00,  9.75891921e+00,  9.60148070e+00],
+            [ 3.79376074e+00,  7.80636347e+00,  9.81621494e+00],
+            [-3.79326119e+00,  3.90433959e+00,  9.81621494e+00],
+            [-2.49774700e-04,  7.80636347e+00,  9.81621494e+00],
+            [-2.49774700e-04,  1.17114750e+01,  9.81621494e+00],
+            [ 3.79689188e+00,  3.90592218e+00,  9.82105992e+00],
+            [-3.38091530e-03,  3.90592218e+00,  9.82105992e+00],
+            [-3.38091530e-03, -2.35449600e-03,  9.82105992e+00],
+            [-3.79013005e+00,  7.80478087e+00,  9.82105992e+00]]
+        sym = ['O',
+               'O',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'Ca',
+               'Y',
+               'Y',
+               'Y',
+               'Y',
+               'Y',
+               'Y',
+               'Y',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Cu',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'Ba',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O',
+               'O']
+        supercell = Atoms(symbols=sym, positions=pos, 
+                     cell=lattice)
+        
+    write('initial.cif', supercell)
     
     #make the supercell of the 2rt(2) doped supercell
     multiplier = numpy.identity(3)
-    multiplier[0,0]=nxy
-    multiplier[1,1]=nxy
     multiplier[2,2]=nz
     supercell = make_supercell(supercell, multiplier)
     
+    write('supercell.cif',supercell)
     
     if slab:
         #make the position of the 'capping' layer
-        Cu_layer = Atoms(symbols = ['Cu', 'Cu', 'O', 'O'], 
-                         scaled_positions = [[0.0,0.0, 0.0],
-                                      [0.5,0.5,0],
-                                      [0.25,0.25,0], 
-                                      [0.75,0.75,0]],
-                       cell = numpy.array([[a,0,0],[0,a,0],[0,0,clat]]))
-        #make a supercell of the capping layer
-        multiplier = numpy.identity(3)
-        multiplier[0,0]=nxy*2
-        multiplier[1,1]=nxy*2
-        Cu_layer = make_supercell(Cu_layer, multiplier)
-
+        Cu_layer = Atoms(symbols = ['O','O','Cu','Cu','Cu','Cu',
+                                    'Cu','Cu','Cu','Cu','O','O','O','O','O','O'],
+                         positions = [[ 3.78343845e+00,  9.75891921e+00, 0],
+                                      [ 1.00725138e-02,  9.75891921e+00, 0],
+                                    [ 4.23017900e-04,  1.30382920e-03, 0],
+                                    [ 4.23017900e-04,  3.90226386e+00, 0],
+                                    [ 3.79308795e+00,  3.90226386e+00, 0],
+                                    [-3.79393398e+00,  7.80843920e+00, 0],
+                                    [ 3.79327612e+00,  7.80723808e+00, 0],
+                                    [ 2.34848800e-04,  1.17106004e+01, 0],
+                                    [-3.79374581e+00,  3.90346498e+00, 0],
+                                    [ 2.34848800e-04,  7.80723808e+00, 0],
+                                    [-3.76572710e-03,  5.85492076e+00, 0],
+                                    [ 3.79727669e+00,  5.85492076e+00, 0],
+                                    [-3.76572710e-03,  1.36629177e+01, 0],
+                                    [-3.78974524e+00,  5.85578229e+00, 0],
+                                    [-3.78837203e+00,  9.75891921e+00, 0],
+                                    [-5.13893340e-03,  1.95178384e+00, 0]],
+                       cell = numpy.array([[alat,blat,0],[-alat,blat,0],[0,0,0.1]]))
         #cap the unit cell
         supercell = stack(supercell, Cu_layer)
-
+        print(supercell.cell)
+        
+        write('capped.cif',supercell)
+        
         #add vacuum
-        add_vacuum(supercell, vacuum)
+        cell = supercell.get_cell()
+        cell[2][2]+=20
+        supercell.set_cell(cell)
+        write('vac.cif',supercell)
     
     #output to cif
-    name = f'YBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
+    name = f'dYBCO_rt2_{nxy}{nxy}{nz}_{vacuum}vac_{cleave_plane}cleave_{separation}sep'
     write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     
@@ -348,7 +581,8 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
     pseudopots = {'Y': PseudoPotential(ptype='uspp', element='Y', functional='PBE', name='Y.pbe-nsp-van.UPF'),
                   'Ba': PseudoPotential(ptype='uspp', element='Ba', functional='PBE', name='Ba.pbe-nsp-van.UPF'),
                   'Cu': PseudoPotential(ptype='uspp', element='Cu', functional='PBE', name='Cu.pbe-n-van_ak.UPF'),
-                  'O': PseudoPotential(ptype='uspp', element='O', functional='PBE', name='O.pbe-van_ak.UPF')}
+                  'O': PseudoPotential(ptype='uspp', element='O', functional='PBE', name='O.pbe-van_ak.UPF'),
+                 'Ca': PseudoPotential(ptype='uspp', element='Ca', functional='PBE', name='Ca.pbe-nsp-van.UPF')}
     kpts = Kpoints(gridsize=[nkxy, nkxy, nkz], option='automatic', offset=False)
     #runpath = Dir(path=os.path.join('n/$SCRATCH/hoffman_lab/2021_AP275', 
     #                                dirname))
@@ -356,14 +590,19 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
     input_params = PWscf_inparam({
         'CONTROL': {
             'calculation': calc,
+#<<<<<<< HEAD
             'pseudo_dir': '/n/holyscratch01/hoffman_lab/ruizhe/YBCO_Project/pseudo',
             'outdir': '/n/holyscratch01/hoffman_lab/ruizhe/outdir',
+#=======
+            'pseudo_dir': './pseudo',
+            'outdir': './outdir',
+#>>>>>>> a059feccd303c234676cdd339b8886012b6685f9
             'tstress': True,
             'tprnfor': True,
             'disk_io': 'none',
             'nstep' : 300,
-            'etot_conv_thr' : 1.0e-5,
-            'forc_conv_thr' : 1.0e-4
+            'etot_conv_thr' : 1.0e-4,
+            'forc_conv_thr' : 1.0e-3
         },
         'SYSTEM': {
             'ecutwfc': ecut,
@@ -376,15 +615,16 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
             'diagonalization': 'david',
             'electron_maxstep': 120,
             'mixing_mode': 'local-TF',
-            'mixing_beta': 0.2,
+            'mixing_beta': 0.5,
             'mixing_ndim': 10,
-            'conv_thr': 1e-6
+            'conv_thr': 1e-8
         },
         'IONS': {
             'ion_dynamics': 'bfgs'
         },
         'CELL': {
-            'cell_dynamics': 'bfgs'
+            'cell_dynamics': 'bfgs',
+            'press_conv_thr':5
         },
         })
         
