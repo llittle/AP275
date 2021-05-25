@@ -600,7 +600,7 @@ def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
     
     #find the plane to cleave on (closest to the middle)
     if cleave_plane == 'CuO':
-        split = int(nz/2)*13 + 2
+        split = int(nz/2)*13 + 2 #1/2 of the unit cells * # atoms in the unit cell + # layers before the cleave plane
         
     elif cleave_plane == "BaO":
         split = int(nz/2)*13 + 4
@@ -618,6 +618,48 @@ def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
         
     #output ot a cif
     name = f'YBCO_{cleave_plane}_cleave_{separation}_sep'
+    #write(f'{name}.cif', supercell)
+    structure = Struc(ase2struc(supercell))
+    
+    return [structure, name]
+
+def make_cleave_struc_reconstruc(lattice, symbols, sc_pos, nz, nx, ny, cleave_plane='NO',
+                         separation=0):
+    """
+    Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
+    nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
+    alat, blat, clat: conventianal (NOT root2) lattice parameters
+    vacuum: vacuum spacing between slabs
+    cleave_plane: "BaO", 'CuO', "Y", or 'NO' for no cleave plane
+    separation: separation of the cleave
+    :return: structure object converted from ase
+    
+    Structure will have CuO chains on the top and the bottom of the unit cell
+    """
+    
+    supercell = Atoms(symbols=symbols, positions=sc_pos, cell=lattice)
+  
+    
+    #find the plane to cleave on (closest to the middle)
+    if cleave_plane == 'CuO':
+        split = int(nz/2)*13*nx*ny + 2*nx*ny #1/2 of the unit cells * # atoms in the unit cell + # layers before the cleave plane
+        
+    elif cleave_plane == "BaO":
+        split = int(nz/2)*13*nx*ny + 4*nx*ny
+        
+    elif cleave_plane == "Y":
+        split = int(nz/2)*13*nx*ny + 8*nx*ny
+    
+    if cleave_plane != "NO":
+        temp_pos = supercell.get_positions()
+        temp_pos[split:,2] += separation #add separation in z to all atoms after cleave plane
+        supercell.set_positions(temp_pos)
+        temp_cell = supercell.get_cell()
+        temp_cell[2][2] += separation #add separation to cell height so vacuum is unchanged
+        supercell.set_cell(temp_cell)
+        
+    #output ot a cif
+    name = f'YBCO_{nx}{ny}{nz}_{cleave_plane}_cleave_{separation}_sep'
     #write(f'{name}.cif', supercell)
     structure = Struc(ase2struc(supercell))
     
