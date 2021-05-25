@@ -5,6 +5,7 @@ from ase.spacegroup import crystal
 from ase.io import write
 from ase.build import bulk, make_supercell, add_vacuum, stack
 from ase import Atoms
+import re
 
 class PWscf_inparam(Param):
     """
@@ -117,6 +118,54 @@ def parse_qe_pwscf_output(outfile):
 '''
 METHODS ADDED 
 '''
+
+import numpy 
+def parse_qe_pwscf_output_mod(outfile):
+    with open(outfile, 'r') as outf:
+        for line in outf:
+            if line.lower().startswith('     pwscf'):
+                walltime = line.split()[-3] + line.split()[-2]
+            if line.lower().startswith('     total force'):
+                total_force = float(line.split()[3]) * (13.605698066 / 0.529177249)
+            if line.lower().startswith('!    total energy'):
+                total_energy = float(line.split()[-2]) * 13.605698066
+            if line.lower().startswith('          total   stress'):
+                pressure = float(line.split()[-1])
+            if 'number of k points' in line.lower():
+                unique_k =line.split()[4]
+    result = {'energy': total_energy, 'force': total_force, 'pressure': pressure, 'unique ks':unique_k}
+    return result
+
+def parse_qe_pwrelax_output(outfile):
+    with open(outfile, 'r') as outf:
+        save = 0
+        for line in outf:
+            if line.lower().startswith('!    total energy'):
+                total_energy = float(line.split()[-2]) * 13.605698066
+            if line.lower().startswith('end final coordinates'):
+                save = 0
+            if line.lower().startswith('     new unit-cell volume ='):
+                volume = line.split()[4]
+            if line.lower().startswith('     density = '):
+                density = line.split()[2]
+            if save == 'cell':
+                cell.append(line.split())
+            if save == 'atoms':
+                if len(line.split())>1:
+                    sym.append(line.split()[0])
+                    pos.append(line.split()[1:])
+            if line.lower().startswith('cell_parameters'):
+                save = 'cell'
+                cell = []
+            if line.lower().startswith('atomic_positions'):
+                save = 'atoms'
+                pos = []
+                sym = []
+                cell = cell[:-2]
+                
+    result = {'energy': total_energy, 'volume':volume, 'density':density, 'cell': numpy.asarray(cell).astype(float), 'positions':numpy.asarray(pos).astype(float), 
+             'symbols':sym}
+    return result
 
 def make_struc_doped(nxy=1, nz = 2, alat=3.78, blat=3.88, clat=11.68, vacuum=0, cleave_plane='NO',
                          separation=0, slab = True):
@@ -574,6 +623,48 @@ def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
     
     return [structure, name]
 
+def make_cleave_struc_doped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
+                         separation=0):
+    """
+    Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
+    nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
+    alat, blat, clat: conventianal (NOT root2) lattice parameters
+    vacuum: vacuum spacing between slabs
+    cleave_plane: "BaO", 'CuO', "Y", or 'NO' for no cleave plane
+    separation: separation of the cleave
+    :return: structure object converted from ase
+    
+    Structure will have CuO chains on the top and the bottom of the unit cell
+    """
+    
+    supercell = Atoms(symbols=symbols, positions=sc_pos, cell=lattice)
+  
+    
+    #find the plane to cleave on (closest to the middle)
+    if cleave_plane == 'CuO':
+        split = int(nz/2)*104 + 16
+        
+    elif cleave_plane == "BaO":
+        split = int(nz/2)*104 + 32
+        
+    elif cleave_plane == "Y":
+        split = int(nz/2)*104 + 64
+    
+    if cleave_plane != "NO":
+        temp_pos = supercell.get_positions()
+        temp_pos[split:,2] += separation #add separation in z to all atoms after cleave plane
+        supercell.set_positions(temp_pos)
+        temp_cell = supercell.get_cell()
+        temp_cell[2][2] += separation #add separation to cell height so vacuum is unchanged
+        supercell.set_cell(temp_cell)
+        
+    #output ot a cif
+    name = f'YBCO_{cleave_plane}_cleave_{separation}_sep'
+    #write(f'{name}.cif', supercell)
+    structure = Struc(ase2struc(supercell))
+    
+    return [structure, name]
+
 def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, calc = 'vc-relax'):
     '''
     Generate input files based on an input structure
@@ -628,3 +719,55 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
     infile = write_pwscf_input(params=input_params, struc=struc, kpoints=kpts, runpath=runpath.path,
                                pseudopots=pseudopots, name = dirname, constraint=None)
     return infile
+
+
+def parse_set(path, slab_eng):
+    
+    def sort_set(sep, eng):
+        idx=numpy.argsort(sep)
+        return [sep[idx], eng[idx]]
+    
+    files = os.listdir(path)
+    Y = []
+    CuO = []
+    BaO = []
+    sep_Y = []
+    sep_CuO = []
+    sep_BaO = []
+    for f in files:
+        x = re.split("_", f)
+        if 'pwo' in f:
+            cleave = x[1]
+            res = parse_qe_pwscf_output_mod(path+f)
+            if cleave == 'Y':
+                s = float(x[3])
+                sep_Y.append(s)
+                Y.append(res['energy'])
+            elif cleave == 'BaO':
+                s = float(x[3])
+                sep_BaO.append(s)
+                BaO.append(res['energy'])
+            elif cleave == 'CuO':
+                s = float(x[3])
+                sep_CuO.append(s)
+                CuO.append(res['energy'])
+    for lst in [sep_Y, sep_CuO, sep_BaO]:
+        lst.append(0.0)
+    for lst in [Y, CuO, BaO]:
+        lst.append(slab_eng)
+    Y = numpy.array(Y)
+    BaO = numpy.array(BaO)
+    CuO = numpy.array(CuO)
+    Y,BaO,CuO = (numpy.array(x)-slab_eng for x in (Y, BaO, CuO))
+    sep_Y, sep_BaO, sep_CuO = (numpy.array(x) for x in (sep_Y, sep_BaO, sep_CuO))
+    [sep_Y, Y] = sort_set(sep_Y, Y)
+    [sep_BaO, BaO] = sort_set(sep_BaO, BaO)
+    [sep_CuO, CuO] = sort_set(sep_CuO, CuO)
+
+
+    return [Y, 
+            CuO, 
+            BaO, 
+            sep_Y, 
+            sep_CuO, 
+            sep_BaO]
