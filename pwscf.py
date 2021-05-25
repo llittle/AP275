@@ -681,8 +681,13 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
     input_params = PWscf_inparam({
         'CONTROL': {
             'calculation': calc,
+#<<<<<<< HEAD
+            'pseudo_dir': '/n/holyscratch01/hoffman_lab/ruizhe/YBCO_Project/pseudo',
+            'outdir': '/n/holyscratch01/hoffman_lab/ruizhe/outdir',
+#=======
             'pseudo_dir': './pseudo',
             'outdir': './outdir',
+#>>>>>>> a059feccd303c234676cdd339b8886012b6685f9
             'tstress': True,
             'tprnfor': True,
             'disk_io': 'none',
