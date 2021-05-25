@@ -121,6 +121,13 @@ METHODS ADDED
 
 import numpy 
 def parse_qe_pwscf_output_mod(outfile):
+    '''
+    Input: filepath from current folder
+    Output: {'energy': (eV), 
+            'force': (eV/Angstrom), 
+            'pressure': (kbar), 
+            'unique ks': #}
+    '''
     with open(outfile, 'r') as outf:
         for line in outf:
             if line.lower().startswith('     pwscf'):
@@ -137,6 +144,16 @@ def parse_qe_pwscf_output_mod(outfile):
     return result
 
 def parse_qe_pwrelax_output(outfile):
+    '''
+        Input: filepath from current folder
+        Output: {'energy': (eV), 
+            'volume':(Ang^3)
+            'density': (g/cm^3)
+            'cell': numpy array 3x3
+            'positions': numpy array, not sorted 
+            'symbols': list, same index as positions
+            }
+    '''
     with open(outfile, 'r') as outf:
         save = 0
         for line in outf:
@@ -145,7 +162,7 @@ def parse_qe_pwrelax_output(outfile):
             if line.lower().startswith('end final coordinates'):
                 save = 0
             if line.lower().startswith('     new unit-cell volume ='):
-                volume = line.split()[4]
+                volume = line.split()[7]
             if line.lower().startswith('     density = '):
                 density = line.split()[2]
             if save == 'cell':
@@ -584,10 +601,13 @@ def make_struc_undoped(nxy=1, nz = 2, alat=3.82, blat=3.89, clat=11.68, vacuum=0
 def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
                          separation=0):
     """
-    Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
-    nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
-    alat, blat, clat: conventianal (NOT root2) lattice parameters
-    vacuum: vacuum spacing between slabs
+    Creates a YBCO-like cleaved crystal structure using ASE.
+    Requires input to be 1x1xn supercell
+    Inputs:
+    lattice = 3x3 numpy array of cell parameters
+    symbols = n-length list of elements
+    sc_pos = nx3 numpy array, rows are indexed matched to symbols
+    nz = int, number of z repetitions of YBCO-like unit cell (used to figure out cleave position)
     cleave_plane: "BaO", 'CuO', "Y", or 'NO' for no cleave plane
     separation: separation of the cleave
     :return: structure object converted from ase
@@ -626,10 +646,14 @@ def make_cleave_struc_undoped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
 def make_cleave_struc_reconstruc(lattice, symbols, sc_pos, nz, nx, ny, cleave_plane='NO',
                          separation=0):
     """
-    Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
-    nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
-    alat, blat, clat: conventianal (NOT root2) lattice parameters
-    vacuum: vacuum spacing between slabs
+    Creates a YBCO-like cleaved crystal structure using ASE.
+    Inputs:
+    lattice = 3x3 numpy array of cell parameters
+    symbols = n-length list of elements
+    sc_pos = nx3 numpy array, rows are indexed matched to symbols
+    nz = int, number of z repetitions of YBCO-like unit cell (used to figure out cleave position)
+    nx = int, number of x repetitions of YBCO-like unit cell (used to figure out cleave position)
+    ny = int, number of y repetitions of YBCO-like unit cell (used to figure out cleave position)
     cleave_plane: "BaO", 'CuO', "Y", or 'NO' for no cleave plane
     separation: separation of the cleave
     :return: structure object converted from ase
@@ -642,7 +666,7 @@ def make_cleave_struc_reconstruc(lattice, symbols, sc_pos, nz, nx, ny, cleave_pl
     
     #find the plane to cleave on (closest to the middle)
     if cleave_plane == 'CuO':
-        split = int(nz/2)*13*nx*ny + 2*nx*ny #1/2 of the unit cells * # atoms in the unit cell + # layers before the cleave plane
+        split = int(nz/2)*13*nx*ny + 2*nx*ny #1/2 of the unit cells * # atoms in the unit cell + # atoms before the cleave plane
         
     elif cleave_plane == "BaO":
         split = int(nz/2)*13*nx*ny + 4*nx*ny
@@ -668,10 +692,13 @@ def make_cleave_struc_reconstruc(lattice, symbols, sc_pos, nz, nx, ny, cleave_pl
 def make_cleave_struc_doped(lattice, symbols, sc_pos, nz, cleave_plane='NO',
                          separation=0):
     """
-    Creates the crystal structure using ASE and saves to a cif file. Constructs a root2xroot2 YBCO structure
-    nxy, nz: unit cell dimensions follow  nxy *root 2, nxy* root 2, nz 
-    alat, blat, clat: conventianal (NOT root2) lattice parameters
-    vacuum: vacuum spacing between slabs
+    Creates a YBCO-like cleaved crystal structure using ASE.
+    Requires input to be a 2rt(2)x2rt(2)xn supercell reconstruction
+    Inputs:
+    lattice = 3x3 numpy array of cell parameters
+    symbols = n-length list of elements
+    sc_pos = nx3 numpy array, rows are indexed matched to symbols
+    nz = int, number of z repetitions of YBCO-like unit cell (used to figure out cleave position)
     cleave_plane: "BaO", 'CuO', "Y", or 'NO' for no cleave plane
     separation: separation of the cleave
     :return: structure object converted from ase
@@ -723,13 +750,8 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
     input_params = PWscf_inparam({
         'CONTROL': {
             'calculation': calc,
-#<<<<<<< HEAD
-            'pseudo_dir': '/n/holyscratch01/hoffman_lab/ruizhe/YBCO_Project/pseudo',
-            'outdir': '/n/holyscratch01/hoffman_lab/ruizhe/outdir',
-#=======
             'pseudo_dir': './pseudo',
             'outdir': './outdir',
-#>>>>>>> a059feccd303c234676cdd339b8886012b6685f9
             'tstress': True,
             'tprnfor': True,
             'disk_io': 'none',
@@ -769,39 +791,65 @@ def write_inputs(ecut = 60, nkxy = 8, nkz = 1, struc = None, dirname = None, cal
 
 
 def parse_set(path, slab_eng):
+    '''
+    Parses a folder of output files of SCF type
+    Splits files names based on "_", so naming scheme must follow
+    'X_{BaO, CuO, Y}_X_{seperation distance (Ang)}_...pwo'
+    Inputs:
+    path - string path to folder containing results relative to current location
+    slab_eng - float energy (eV) of uncleaved structure
+    
+    Output:
+    list of numpy arrays
+    [Y output energies, CuO output energies, BaO output energies, Y separations, CuO separations, BaO separations]
+    '''
     
     def sort_set(sep, eng):
         idx=numpy.argsort(sep)
         return [sep[idx], eng[idx]]
     
     files = os.listdir(path)
+    
+    #set up empty lists
     Y = []
     CuO = []
     BaO = []
     sep_Y = []
     sep_CuO = []
     sep_BaO = []
+    
+    #go through each file in folder 
     for f in files:
+        
+        #parse file name 
         x = re.split("_", f)
-        if 'pwo' in f:
-            cleave = x[1]
-            res = parse_qe_pwscf_output_mod(path+f)
+        
+        if 'pwo' in f: #must be output file
+            cleave = x[1] #identify cleave plane
+            res = parse_qe_pwscf_output_mod(path+f) #parse scf file 
+            
             if cleave == 'Y':
                 s = float(x[3])
                 sep_Y.append(s)
                 Y.append(res['energy'])
+                
             elif cleave == 'BaO':
                 s = float(x[3])
                 sep_BaO.append(s)
                 BaO.append(res['energy'])
+                
             elif cleave == 'CuO':
                 s = float(x[3])
                 sep_CuO.append(s)
                 CuO.append(res['energy'])
+    
+    #add the 0 separation energy
     for lst in [sep_Y, sep_CuO, sep_BaO]:
         lst.append(0.0)
     for lst in [Y, CuO, BaO]:
         lst.append(slab_eng)
+    
+    #sort results and put them into numpy arrays
     Y = numpy.array(Y)
     BaO = numpy.array(BaO)
     CuO = numpy.array(CuO)
