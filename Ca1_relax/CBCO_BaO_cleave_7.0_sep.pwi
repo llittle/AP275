@@ -1,0 +1,76 @@
+&CONTROL
+    calculation = 'relax'
+    pseudo_dir = './pseudo'
+    outdir = './outdir'
+    tstress = .true.
+    tprnfor = .true.
+    disk_io = 'none'
+    nstep = 300
+    etot_conv_thr = 0.0001
+    forc_conv_thr = 0.001
+/ 
+&SYSTEM
+    ecutwfc = 60
+    ecutrho = 720
+    occupations = 'smearing'
+    smearing = 'gaussian'
+    degauss = 0.01
+    ntyp = 4
+    nat = 28
+    ibrav = 0
+/ 
+&ELECTRONS
+    diagonalization = 'david'
+    electron_maxstep = 120
+    mixing_mode = 'local-TF'
+    mixing_beta = 0.5
+    mixing_ndim = 10
+    conv_thr = 1e-08
+/ 
+&IONS
+    ion_dynamics = 'bfgs'
+/ 
+&CELL
+    cell_dynamics = 'bfgs'
+    press_conv_thr = 5
+/ 
+K_POINTS {automatic}
+ 8 8 1  0 0 0
+ATOMIC_SPECIES
+  Ba 137.327 Ba.pbe-nsp-van.UPF
+  Ca 40.078 Ca.pbe-nsp-van.UPF
+  Cu 63.546 Cu.pbe-n-van_ak.UPF
+  O 15.999 O.pbe-van_ak.UPF
+CELL_PARAMETERS {angstrom}
+ 3.930220125 0.0 0.0
+ 0.0 3.722237662 0.0
+ 0.0 0.0 50.57968197
+ATOMIC_POSITIONS {angstrom}
+  O 0.00000 1.86112 -0.18462    0   0   0
+  Cu 0.00000 0.00000 0.10398    0   0   0
+  O 0.00000 0.00000 1.97726    0   0   0
+  Ba 1.96511 1.86112 2.23641    0   0   0
+  Cu 0.00000 0.00000 4.07731    0   0   0
+  O 1.96511 0.00000 4.23210    0   0   0
+  O 0.00000 1.86112 4.36922    0   0   0
+  Ca 1.96511 1.86112 5.88600    0   0   0
+  O 0.00000 1.86112 7.33675    0   0   0
+  O 1.96511 0.00000 7.48476    0   0   0
+  Cu 0.00000 0.00000 7.66886    0   0   0
+  Ba 1.96511 1.86112 9.54877    0   0   0
+  O 0.00000 0.00000 9.87089    0   0   0
+  O 0.00000 1.86112 11.75864
+  Cu 0.00000 0.00000 11.75886
+  O 0.00000 0.00000 13.64678
+  Ba 1.96511 1.86112 13.96887
+  Cu 0.00000 0.00000 22.84871
+  O 1.96511 0.00000 23.03281
+  O 0.00000 1.86112 23.18080
+  Ca 1.96511 1.86112 24.63159
+  O 0.00000 1.86112 26.14836    0   0   0
+  O 1.96511 0.00000 26.28548    0   0   0
+  Cu 0.00000 0.00000 26.44028    0   0   0
+  Ba 1.96511 1.86112 28.28117    0   0   0
+  O 0.00000 0.00000 28.54028    0   0   0
+  Cu 0.00000 0.00000 30.41358    0   0   0
+  O 0.00000 1.86112 30.70213    0   0   0
