@@ -1,0 +1,43 @@
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+forrtl: error (78): process killed (SIGTERM)
+Image              PC                Routine            Line        Source             
+pw.x               0000000000D7A8C4  Unknown               Unknown  Unknown
+libpthread-2.17.s  00002B3668860630  Unknown               Unknown  Unknown
+libmkl_avx512.so   00002B367D90642C  mkl_blas_avx512_d     Unknown  Unknown
+forrtl: error (78): process killed (SIGTERM)
+Image              PC                Routine            Line        Source             
+pw.x               0000000000D7A8C4  Unknown               Unknown  Unknown
+libpthread-2.17.s  00002AB1B923B630  Unknown               Unknown  Unknown
+pw.x               0000000000E6144A  Unknown               Unknown  Unknown
+pw.x               0000000000765AE6  qvan2_                     88  qvan2.f90
+pw.x               000000000065E3A8  dfunct_mp_newq_           126  newd.f90
+pw.x               000000000065AD1B  dfunct_mp_newd_           262  newd.f90
+pw.x               000000000041C159  electrons_scf_            776  electrons.f90
+pw.x               00000000004158F4  electrons_                153  electrons.f90
+pw.x               0000000000583162  run_pwscf_                139  run_pwscf.f90
+pw.x               00000000004134C5  MAIN__                    103  pwscf.f90
+pw.x               0000000000413322  Unknown               Unknown  Unknown
+slurmstepd: error: *** JOB 31887280 ON holy7c04206 CANCELLED AT 2021-06-28T23:35:50 ***
+slurmstepd: error: *** STEP 31887280.0 ON holy7c04206 CANCELLED AT 2021-06-28T23:35:50 ***
+--------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 31887306.0 ON holy7c04506 CANCELLED AT 2021-06-28T23:46:48 ***
+srun: error: holy7c06312: task 6: Killed
+srun: error: holy7c06311: task 5: Killed
+srun: error: holy7c06307: task 3: Killed
+srun: error: holy7c06305: task 2: Killed
+srun: error: holy7c06309: task 4: Killed
+srun: error: holy7c04506: task 0: Exited with exit code 1
+srun: error: holy7c04506: task 1: Killed
+srun: error: holy7c06411: tasks 10-12: Killed
+srun: error: holy7c06506: tasks 15-17: Killed
+srun: error: holy7c06507: tasks 18-19: Killed
+srun: error: holy7c06504: tasks 13-14: Killed
+srun: error: holy7c06410: tasks 7-9: Killed
