@@ -6,11 +6,8 @@ NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
 You may or may not see output from other processes, depending on
 exactly when Open MPI kills them.
 --------------------------------------------------------------------------
+srun: error: holy7c16103: task 0: Exited with exit code 1
+slurmstepd: error: *** STEP 32914935.0 ON holy7c16103 CANCELLED AT 2021-07-09T12:55:58 ***
 srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-slurmstepd: error: *** STEP 31844506.0 ON holy7c04311 CANCELLED AT 2021-06-28T12:59:21 ***
-slurmstepd: error: *** STEP 31844506.0 ON holy7c04311 CANCELLED AT 2021-06-28T12:59:21 ***
-srun: error: holy7c04311: task 0: Exited with exit code 1
-srun: error: holy7c04311: tasks 1-3: Killed
-srun: error: holy7c06308: tasks 14-19: Killed
-srun: error: holy7c06211: tasks 10-13: Killed
-srun: error: holy7c06208: tasks 4-9: Killed
+srun: error: holy7c16408: tasks 10-19: Killed
+srun: error: holy7c16103: tasks 1-9: Killed
