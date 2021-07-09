@@ -1,0 +1,14 @@
+--------------------------------------------------------------------------
+MPI_ABORT was invoked on rank 0 in communicator MPI_COMM_WORLD
+with errorcode 1.
+
+NOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.
+You may or may not see output from other processes, depending on
+exactly when Open MPI kills them.
+--------------------------------------------------------------------------
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 31887032.0 ON holy7c04211 CANCELLED AT 2021-06-28T23:40:11 ***
+srun: error: holy7c06304: task 19: Killed
+srun: error: holy7c04211: task 0: Exited with exit code 1
+srun: error: holy7c04211: tasks 1-7: Killed
+srun: error: holy7c06110: tasks 8-18: Killed
